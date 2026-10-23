@@ -586,7 +586,9 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
 .btn.sm{min-height:38px;padding:0 14px;font-size:13.5px}
 .fnotif{display:flex;gap:10px;align-items:center;background:var(--cupid);color:var(--on-light);border-radius:16px;padding:8px 10px;font-size:13.5px;animation:sheetIn .4s both}
 .fnotif .av,.fnotif .fav{width:34px;height:34px;border-radius:50%;flex:none}.fnotif span{flex:1}
-.tk{border-radius:16px;overflow:hidden;background:#000}
+.tk{border-radius:16px;overflow:hidden;background:#000;position:relative}
+.tk .tkcover{position:absolute;inset:0}
+.tk.on iframe{position:relative;z-index:1;background:transparent}
 .tkcover{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:22px 16px;min-height:200px;background:radial-gradient(circle at 30% 20%,rgba(37,244,238,.25),transparent 55%),radial-gradient(circle at 75% 80%,rgba(254,44,85,.3),transparent 55%),#111;color:#fff}
 .tkcover b{font-size:15px}.tkcover .hint{color:#ddd;font-size:13.5px}.tkcover small{color:#aaa;font-size:11.5px}
 .tklogo{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:24px;background:#000;box-shadow:-2px -2px 0 #25f4ee,2px 2px 0 #fe2c55}
@@ -868,8 +870,8 @@ function postHTML(p,still){
    <form class="fwrite" data-p="${p.id}"><input maxlength="140" placeholder="${p.kind==='defi'?'Ta légende…':'Un commentaire drôle et bienveillant…'}" aria-label="Commenter"><button class="btn soft sm" type="submit">Publier</button></form>
   </article>`}
 const tkUrl=p=>`https://www.tiktok.com/@${p.h}/video/${p.v}`;
-function tkHTML(p){return `<div class="tk" id="tk-${p.id}"><div class="tkcover"><span class="tklogo">♪</span><b>@${p.h}</b><span class="hint">${tx(p.text)}</span><button class="btn primary sm" data-act="tkplay" data-p="${p.id}">▶ Regarder ici</button><small>Lecteur officiel TikTok · rien ne se charge avant ton clic</small></div></div>
-  <a class="tklink" href="${tkUrl(p)}" target="_blank" rel="noopener">Vidéo de @${p.h} · voir l’original sur TikTok ↗<small>Elle ne s’affiche pas ? Ce lien marche toujours.</small></a>`}
+function tkHTML(p){return `<div class="tk on" id="tk-${p.id}"><div class="tkcover"><span class="tklogo">♪</span><b>@${p.h}</b><small>Chargement de la vidéo…</small></div><iframe data-src="https://www.tiktok.com/player/v1/${p.v}?autoplay=1&loop=1&description=0&music_info=0&rel=0" title="Vidéo TikTok de @${p.h}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
+  <a class="tklink" href="${tkUrl(p)}" target="_blank" rel="noopener">Vidéo de @${p.h} · voir l’original sur TikTok ↗<small>La vidéo ne se lance pas ? Ce lien marche toujours.</small></a>`}
 function navTabs(cur){return `<div class="tabs" role="tablist"><button role="tab" aria-selected="${cur==='discover'}" data-act="discover">💞 Suggestions</button><button role="tab" aria-selected="${cur==='feed'}" data-act="feed">😂 Le fil du rire</button></div>`}
 function renderFeed(){
   S.phase='feed';const f=S.feed,list=POSTS.filter(p=>f.filter<0||p.st===f.filter).sort((a,b)=>(a.o??a.id)-(b.o??b.id));
@@ -884,9 +886,17 @@ function renderFeed(){
     <div class="feed">${list.map(p=>postHTML(p)).join('')||'<p class="hint">Rien dans ce style pour l’instant.</p>'}</div>
     <p class="hint" style="text-align:center">Le fil reste un bonus : le vrai jeu, c'est le date. 🍷</p>
   </div></div>`;
-  renderNotif();
+  renderNotif();observeTk();
 }
-function refreshPost(id){const el=$('#post-'+id),p=POSTS[id];if(el){const live=el.querySelector('.tk.on'),h=postHTML(p,true);if(h){el.outerHTML=h;if(live)$('#tk-'+id)?.replaceWith(live)}else el.remove()}
+/* Les vidéos se lisent dans le fil, comme sur un réseau social : le lecteur se charge quand la vidéo arrive à l'écran. */
+let tkObs;
+function observeTk(){
+  const root=$('#feedscreen');if(!root)return;
+  if(tkObs)tkObs.disconnect();
+  tkObs=new IntersectionObserver(es=>es.forEach(e=>{const f=e.target;if(e.isIntersecting&&!f.src){f.src=f.dataset.src;f.addEventListener('load',()=>f.classList.add('ok'),{once:true})}}),{root,rootMargin:'0px 0px 200px 0px',threshold:.35});
+  root.querySelectorAll('.tk iframe[data-src]').forEach(f=>{if(!f.src)tkObs.observe(f)});
+}
+function refreshPost(id){const el=$('#post-'+id),p=POSTS[id];if(el){const live=el.querySelector('.tk.on'),h=postHTML(p,true);if(h){el.outerHTML=h;if(live)$('#tk-'+id)?.replaceWith(live);observeTk()}else el.remove()}
   const m=$('#myhum');if(m)m.innerHTML=myHumLine();const c=$('#common');if(c)c.innerHTML=commonHTML();}
 function renderNotif(){const n=$('#fnotif');if(!n)return;const x=S.feed.notif;
   n.innerHTML=x&&!S.feed.blocked[x.by]?`<div class="fnotif">${authAv(x.by)}<span><b>${authName(x.by)}</b> a ri à ton commentaire 😂</span><button class="btn primary sm" data-act="talk" data-by="${x.by}" data-p="${x.p}">Lui écrire</button></div>`:''}
