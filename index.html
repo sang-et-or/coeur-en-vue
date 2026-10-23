@@ -595,6 +595,14 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
 .tk.on iframe{display:block;width:100%;aspect-ratio:9/16;max-height:72vh;border:0}
 .tk.fb{background:#fff}.tk.fb iframe{display:block;width:100%;height:560px;border:0;aspect-ratio:auto;max-height:none}
 .tklogo.fbl{background:#1877f2;box-shadow:none;font-weight:800;font-family:Arial,sans-serif}
+.compose{width:100%}
+.tk.ig{background:#fff}.tk.ig iframe{display:block;width:100%;height:620px;border:0}
+.tklogo.igl{background:linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);box-shadow:none}
+.upm video,.upm img,.uprev{display:block;width:100%;max-height:70vh;object-fit:contain;background:#000;border-radius:16px}
+.uprev{margin-top:8px;max-height:220px}
+.drop{display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px;border:1.5px dashed var(--line);border-radius:16px;background:var(--surface);cursor:pointer;text-align:center}
+.drop span{font-weight:600}.drop small{color:var(--muted);font-size:12px}
+.pend{color:var(--warn)}.okv{color:var(--ok)}
 .tklink{display:flex;flex-direction:column;font-size:13px;color:var(--cupid);text-decoration:none;font-weight:600}
 .tklink small{color:var(--muted);font-weight:400;font-size:12px}
 </style>
@@ -844,8 +852,8 @@ const candKey=id=>id===other(S.me)?'O':id;
 const candId=k=>k==='O'?other(S.me):k;
 function feedCommon(id){const k=candKey(id);if(S.feed.blocked[k])return 0;return (CANDLAUGH[k]||[]).filter(i=>S.feed.laugh[i]).length}
 const feedBonus=id=>Math.min(3,feedCommon(id));
-function authName(k){return k==='O'?P[other(S.me)].name:AUTH[k]?AUTH[k].n:nameOf(k)}
-function authAv(k){if(k==='O')return avatar(other(S.me));const a=AUTH[k];return `<span class="fav" style="background:${a?a.g:GAVG[k]}">${a&&a.e?a.e:authName(k)[0]}</span>`}
+function authName(k){return k==='ME'?P[S.me].name:k==='O'?P[other(S.me)].name:AUTH[k]?AUTH[k].n:nameOf(k)}
+function authAv(k){if(k==='ME')return avatar(S.me);if(k==='O')return avatar(other(S.me));const a=AUTH[k];return `<span class="fav" style="background:${a?a.g:GAVG[k]}">${a&&a.e?a.e:authName(k)[0]}</span>`}
 const isCand=k=>k==='O'||!!GAVG[k];
 function candPct(k){const id=candId(k);return compatFor(S.ans[S.me],ansOf(id),false).score+feedBonus(id)}
 function myHumLine(){const c=[0,0,0,0,0];POSTS.forEach(p=>{if(S.feed.laugh[p.id])c[p.st]++});const n=c.reduce((a,b)=>a+b,0);
@@ -870,9 +878,9 @@ function postHTML(p,still){
   if(p.kind==='poll'){const v=f.poll;const tot=p.votes+(v!=null?1:0);
     extra=`<div class="poll">${p.poll.map((o,i)=>{const pc=Math.round((p.base[i]*p.votes/100+(v===i?1:0))/tot*100);return `<button class="pollopt ${v===i?'on':''}" data-act="poll" data-i="${i}" ${v!=null?'disabled':''}><i style="width:${v!=null?pc:0}%"></i><span>${o}</span>${v!=null?`<b>${pc} %</b>`:''}</button>`}).join('')}</div>`}
   return `<article class="post ${still?'still':''}" id="post-${p.id}">
-   <header>${authAv(p.by)}<div class="ph"><b>${authName(p.by)}${AUTH[p.by]&&AUTH[p.by].tag?` <span class="offi">${AUTH[p.by].tag}</span>`:''}${isCand(p.by)?`<span class="fpct">${candPct(p.by)} % · privé</span>`:''}</b><small>${p.t} · ${HSTY[p.st].e} ${HSTY[p.st].n.toLowerCase()}</small></div><button class="iconbtn sm" data-act="pmenu" data-p="${p.id}" aria-label="Options de la publication">⋯</button></header>
+   <header>${authAv(p.by)}<div class="ph"><b>${authName(p.by)}${AUTH[p.by]&&AUTH[p.by].tag?` <span class="offi">${AUTH[p.by].tag}</span>`:''}${isCand(p.by)?`<span class="fpct">${candPct(p.by)} % · privé</span>`:''}</b><small>${p.t} · ${HSTY[p.st].e} ${HSTY[p.st].n.toLowerCase()}${p.mine?(p.pending?' · <span class="pend">🛡️ en vérification…</span>':' · <span class="okv">✓ vérifiée</span>'):''}</small></div><button class="iconbtn sm" data-act="pmenu" data-p="${p.id}" aria-label="Options de la publication">⋯</button></header>
    <p class="ptext">${tx(p.text)}</p>
-   ${p.art?`<div class="pmedia" ${p.kind==='video'?`data-act="vplay"`:''}>${tx(p.art)}</div>`:''}${p.kind==='tiktok'?tkHTML(p):p.kind==='fb'?fbHTML(p):''}${extra}
+   ${p.art?`<div class="pmedia" ${p.kind==='video'?`data-act="vplay"`:''}>${tx(p.art)}</div>`:''}${p.kind==='tiktok'?tkHTML(p):p.kind==='fb'?fbHTML(p):p.kind==='ig'?igHTML(p):p.kind==='up'?upHTML(p):''}${extra}
    <div class="pacts"><button class="pa ${l?'on':''}" data-act="flaugh" data-p="${p.id}">😂 J'ai ri · ${p.laughs+(l?1:0)}</button><button class="pa ${lk?'on':''}" data-act="flike" data-p="${p.id}">${lk?'❤️':'🤍'} ${p.likes+(lk?1:0)}</button><span class="hint">💬 ${coms.filter(c=>!c.hidden).length}</span></div>
    <div class="fcoms">${coms.map((c,j)=>comHTML(p,c,j)).join('')}</div>
    <form class="fwrite" data-p="${p.id}"><input maxlength="140" placeholder="${p.kind==='defi'?'Ta légende…':'Un commentaire drôle et bienveillant…'}" aria-label="Commenter"><button class="btn soft sm" type="submit">Publier</button></form>
@@ -880,8 +888,38 @@ function postHTML(p,still){
 const tkUrl=p=>`https://www.tiktok.com/@${p.h}/video/${p.v}`;
 function tkHTML(p){return `<div class="tk on" id="tk-${p.id}"><div class="tkcover"><span class="tklogo">♪</span><b>@${p.h}</b><small>Chargement de la vidéo…</small></div><iframe data-src="https://www.tiktok.com/player/v1/${p.v}?autoplay=1&loop=1&description=0&music_info=0&rel=0" title="Vidéo TikTok de @${p.h}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
   <a class="tklink" href="${tkUrl(p)}" target="_blank" rel="noopener">Vidéo de @${p.h} · voir l’original sur TikTok ↗<small>La vidéo ne se lance pas ? Ce lien marche toujours.</small></a>`}
-function fbHTML(p){return `<div class="tk fb on" id="tk-${p.id}"><div class="tkcover"><span class="tklogo fbl">f</span><b>${authName(p.by)}</b><small>Chargement de la publication…</small></div><iframe data-src="https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(p.fb)}&show_text=true&width=350" title="Publication Facebook de ${authName(p.by)}" allow="encrypted-media; clipboard-write; picture-in-picture; web-share" scrolling="no"></iframe></div>
+function fbHTML(p){return `<div class="tk fb on" id="tk-${p.id}"><div class="tkcover"><span class="tklogo fbl">f</span><b>${authName(p.by)}</b><small>Chargement de la publication…</small></div><iframe data-src="https://www.facebook.com/plugins/${p.fbv?'video':'post'}.php?href=${encodeURIComponent(p.fb)}&show_text=true&width=350" title="Publication Facebook de ${authName(p.by)}" allow="encrypted-media; clipboard-write; picture-in-picture; web-share" scrolling="no"></iframe></div>
   <a class="tklink" href="${p.fb}" target="_blank" rel="noopener">Publication de ${authName(p.by)} · voir l’original sur Facebook ↗<small>Elle ne s’affiche pas ? Ce lien marche toujours.</small></a>`}
+function igHTML(p){return `<div class="tk ig on" id="tk-${p.id}"><div class="tkcover"><span class="tklogo igl">◎</span><b>Instagram</b><small>Chargement de la publication…</small></div><iframe data-src="https://www.instagram.com/${p.igt}/${p.ig}/embed/captioned/" title="Publication Instagram" allow="encrypted-media; fullscreen; picture-in-picture" scrolling="no"></iframe></div>
+  <a class="tklink" href="${p.url}" target="_blank" rel="noopener">Voir l’original sur Instagram ↗<small>Elle ne s’affiche pas ? Ce lien marche toujours.</small></a>`}
+function upHTML(p){return `<div class="pmedia upm">${p.mt==='video'?`<video src="${p.src}" controls playsinline muted loop autoplay preload="metadata"></video>`:`<img src="${p.src}" alt="Photo publiée par ${P[S.me].name}">`}</div>`}
+/* Publier : importer une vidéo ou une photo, ou partager un lien TikTok, Instagram ou Facebook (lu dans le fil via l'intégration officielle).
+   Dans la démo, un fichier importé reste sur l'appareil (aucun envoi). */
+function parseLink(u){u=(u||'').trim();let m;
+  if(m=u.match(/tiktok\.com\/@([\w.]+)\/(?:video|photo)\/(\d+)/))return{kind:'tiktok',h:m[1],v:m[2],net:'TikTok'};
+  if(/vm\.tiktok|vt\.tiktok|tiktok\.com\/t\//.test(u))return{err:'Lien TikTok raccourci : ouvre-le, puis copie le lien complet (tiktok.com/@…/video/…).'};
+  if(m=u.match(/instagram\.com\/(?:[\w.]+\/)?(p|reels?|tv)\/([\w-]+)/))return{kind:'ig',igt:m[1]==='p'||m[1]==='tv'?'p':'reel',ig:m[2],url:u,net:'Instagram'};
+  if(/^https?:\/\/([\w-]+\.)?(facebook\.com|fb\.watch)\//.test(u))return{kind:'fb',fb:u,fbv:/\/videos?\/|\/reel\/|fb\.watch|\/watch/.test(u),net:'Facebook'};
+  return{err:u?'Lien non reconnu : colle un lien de publication TikTok, Instagram ou Facebook.':''}}
+function composeModal(){S.feed.draft={tab:'up',st:0,src:null,mt:null};const d=S.feed.draft;
+  modal(`<h3>Publier dans le fil du rire</h3>
+  <div class="tabs"><button aria-selected="true" data-act="ctab" data-v="up">📱 Importer</button><button aria-selected="false" data-act="ctab" data-v="link">🔗 Partager un lien</button></div>
+  <div class="cpane" id="pane-up"><label class="drop"><input type="file" id="upfile" accept="video/*,image/*" hidden><span>📱 Choisir une vidéo ou une photo</span><small>Depuis ton téléphone · 1 min max · 100 Mo</small></label><div id="uprev"></div></div>
+  <div class="cpane" id="pane-link" hidden><input id="ulink" class="capt" inputmode="url" placeholder="Colle un lien TikTok, Instagram ou Facebook"><div class="hint" id="ldet">Ex. : tiktok.com/@compte/video/…, instagram.com/reel/…, facebook.com/…/posts/…</div></div>
+  <textarea id="ucap" class="capt" maxlength="140" rows="2" placeholder="Ta légende (facultatif)"></textarea>
+  <div class="imp"><span>Quel humour ?</span>${HSTY.map((x,k)=>`<button class="pill" data-act="cstyle" data-k="${k}" aria-pressed="${k===d.st}">${x.e} ${x.n}</button>`).join('')}</div>
+  <label class="optin"><input type="checkbox" id="urights"><span>J'ai le droit de partager ce contenu : il est à moi, ou c'est une publication publique partagée via son lien. Personne n'y apparaît sans son accord.</span></label>
+  <p class="hint" style="margin:0">🛡️ Chaque publication passe par la modération avant d'être visible par tous. Dans la démo, rien n'est envoyé : tout reste sur ton appareil.</p>
+  <div class="lockrow"><button class="btn ghost" data-act="closemodal">Annuler</button><button class="btn primary" data-act="cpost">Publier</button></div>`)}
+function publishDraft(){const d=S.feed.draft;if(!d)return;
+  if(!$('#urights')?.checked){toast('Coche la case sur les droits pour publier.');return}
+  const cap=($('#ucap')?.value||'').trim();
+  if(cap&&BADW.test(norm(cap))){toast('Cupidon bloque cette légende : on rit avec, pas contre.');return}
+  let p={id:POSTS.length,o:-(POSTS.length+100),by:'ME',mine:true,pending:true,st:d.st,t:'À l’instant',likes:0,laughs:0,text:esc(cap),com:[]};
+  if(d.tab==='up'){if(!d.src){toast('Choisis d’abord une vidéo ou une photo.');return}Object.assign(p,{kind:'up',src:d.src,mt:d.mt})}
+  else{const l=parseLink($('#ulink')?.value);if(l.err!==undefined){toast(l.err||'Colle d’abord un lien.');return}Object.assign(p,l)}
+  POSTS.push(p);S.feed.draft=null;closeModal();S.feed.filter=-1;renderFeed();$('#feedscreen').scrollTop=0;
+  const g=S.gen;setTimeout(()=>{if(g!==S.gen)return;p.pending=false;if(S.phase==='feed'){refreshPost(p.id);toast('Publication vérifiée et visible dans le fil ✓')}},2400)}
 function navTabs(cur){return `<div class="tabs" role="tablist"><button role="tab" aria-selected="${cur==='discover'}" data-act="discover">💞 Suggestions</button><button role="tab" aria-selected="${cur==='feed'}" data-act="feed">😂 Le fil du rire</button></div>`}
 function renderFeed(){
   S.phase='feed';const f=S.feed,list=POSTS.filter(p=>f.filter<0||p.st===f.filter).sort((a,b)=>(a.o??a.id)-(b.o??b.id));
@@ -890,6 +928,7 @@ function renderFeed(){
     ${navTabs('feed')}
     <div id="fnotif"></div>
     <details class="charter"><summary>🛡️ La charte du fil : on rit avec, jamais contre</summary><ul><li>On commente la publication, jamais le physique de quelqu'un.</li><li>Pas de drague en public : pour aborder quelqu'un, « Engager la conversation » envoie une demande qu'il ou elle accepte ou non.</li><li>Humour sans cible : pas de moquerie sur une origine, un genre, un corps, une religion, un handicap.</li><li>Filtre automatique + modération humaine. Masquer, signaler, bloquer : en un geste, sur chaque publication.</li><li>Contenu maison ou publié par les membres, avec les droits. Les « actus » de la Gazette sont fictives et étiquetées.</li><li>Les vidéos TikTok et les photos Facebook passent par les outils d’intégration officiels, créditées et liées à l’original. Rien n’est copié. Pour le lancement : accord des créateurs ou licence.</li></ul></details>
+    <button class="btn primary compose" data-act="compose">＋ Publier une vidéo, une photo ou un lien</button>
     <div class="myhum" id="myhum">${myHumLine()}</div>
     <div id="common">${commonHTML()}</div>
     <div class="chips fchips">${[[-1,'Tout']].concat(HSTY.map((x,k)=>[k,x.e+' '+x.n])).map(([k,t])=>`<button class="pill" data-act="ffilter" data-k="${k}" aria-pressed="${f.filter===k}">${t}</button>`).join('')}</div>
@@ -917,6 +956,7 @@ function talkModal(k,pid){const n=authName(k),p=POSTS[pid],snip=p?tx(p.text).rep
   ${ICE.map((f,i)=>`<button class="menu-item" data-act="icesend" data-by="${k}" data-i="${i}"><b>${esc(f(snip))}</b><small>Brise-glace proposé par Cupidon</small></button>`).join('')}
   <button class="btn ghost" data-act="closemodal">Annuler</button>`)}
 function postMenu(id){const p=POSTS[id],n=authName(p.by);
+  if(p.mine){modal(`<h3>Ta publication</h3><button class="menu-item danger" data-act="pdel" data-p="${id}"><b>Supprimer</b><small>Elle disparaît du fil, avec ses réactions</small></button><button class="btn ghost" data-act="closemodal">Fermer</button>`);return}
   modal(`<h3>Publication de ${n}</h3>
   <button class="menu-item" data-act="pwhy" data-p="${id}"><b>Pourquoi je vois ça ?</b><small>Le classement du fil</small></button>
   <button class="menu-item" data-act="phide" data-p="${id}"><b>Masquer cette publication</b><small>Tu ne la verras plus</small></button>
@@ -1786,6 +1826,14 @@ function switchViewer(){
 function afterSwitch(){const sh=S.sheet;if(sh&&sh.armT){clearTimeout(sh.armT);sh.armT=null;sh.sel=null}lastSheet=null;S.typing=null;renderTop();renderChat();renderSheet();renderMission();renderChips();scheduleBot()}
 
 /* ============ Événements ============ */
+document.addEventListener('change',e=>{if(e.target.id!=='upfile')return;const f=e.target.files&&e.target.files[0],d=S.feed.draft;if(!f||!d)return;
+  if(!/^(video|image)\//.test(f.type)){toast('Choisis une vidéo ou une photo.');return}
+  if(f.size>100*1024*1024){toast('Fichier trop lourd : 100 Mo maximum.');return}
+  if(d.src)URL.revokeObjectURL(d.src);d.src=URL.createObjectURL(f);d.mt=f.type.startsWith('video')?'video':'image';
+  $('#uprev').innerHTML=d.mt==='video'?`<video src="${d.src}" class="uprev" muted playsinline autoplay loop></video>`:`<img src="${d.src}" class="uprev" alt="Aperçu">`;
+  if(d.mt==='video'){const v=$('#uprev video');v.addEventListener('loadedmetadata',()=>{if(v.duration>61){toast('Vidéo trop longue : 1 minute maximum.');d.src=null;$('#uprev').innerHTML=''}},{once:true})}
+});
+document.addEventListener('input',e=>{if(e.target.id!=='ulink')return;const l=parseLink(e.target.value),h=$('#ldet');if(h)h.innerHTML=l.err?`<span style="color:var(--warn)">${l.err}</span>`:l.net?`✓ Publication ${l.net} détectée : elle se lira directement dans le fil.`:''});
 document.addEventListener('submit',e=>{const f=e.target.closest('.fwrite');if(!f)return;e.preventDefault();
   const id=+f.dataset.p,inp=f.querySelector('input'),v=inp.value.trim().replace(/\s+/g,' ');if(v.length<2)return;
   const n=norm(v);
@@ -1859,6 +1907,11 @@ document.addEventListener('click',e=>{
     case 'flike':{const id=+b.dataset.p;S.feed.like[id]=!S.feed.like[id];refreshPost(id);break}
     case 'claugh':{const k=b.dataset.k;S.feed.claugh[k]=!S.feed.claugh[k];refreshPost(+b.dataset.p);break}
     case 'poll':S.feed.poll=+b.dataset.i;refreshPost(4);toast('Vote enregistré. Cupidon reste neutre (non).');break;
+    case 'compose':composeModal();break;
+    case 'ctab':{const v=b.dataset.v;S.feed.draft.tab=v;document.querySelectorAll('[data-act=ctab]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));$('#pane-up').hidden=v!=='up';$('#pane-link').hidden=v!=='link';break}
+    case 'cstyle':S.feed.draft.st=+b.dataset.k;document.querySelectorAll('[data-act=cstyle]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));break;
+    case 'cpost':publishDraft();break;
+    case 'pdel':closeModal();S.feed.hidden[+b.dataset.p]=true;refreshPost(+b.dataset.p);toast('Publication supprimée.');break;
     case 'tkplay':{const p=POSTS[+b.dataset.p],box=$('#tk-'+p.id);if(box){box.classList.add('on');box.innerHTML=`<iframe src="https://www.tiktok.com/player/v1/${p.v}?description=1&music_info=1&rel=0" title="Vidéo TikTok de @${p.h}" allow="encrypted-media; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe>`}break}
     case 'vplay':b.classList.toggle('playing');break;
     case 'pmenu':postMenu(+b.dataset.p);break;
