@@ -593,6 +593,8 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
 .tkcover b{font-size:15px}.tkcover .hint{color:#ddd;font-size:13.5px}.tkcover small{color:#aaa;font-size:11.5px}
 .tklogo{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:24px;background:#000;box-shadow:-2px -2px 0 #25f4ee,2px 2px 0 #fe2c55}
 .tk.on iframe{display:block;width:100%;aspect-ratio:9/16;max-height:72vh;border:0}
+.tk.fb{background:#fff}.tk.fb iframe{display:block;width:100%;height:560px;border:0;aspect-ratio:auto;max-height:none}
+.tklogo.fbl{background:#1877f2;box-shadow:none;font-weight:800;font-family:Arial,sans-serif}
 .tklink{display:flex;flex-direction:column;font-size:13px;color:var(--cupid);text-decoration:none;font-weight:600}
 .tklink small{color:var(--muted);font-weight:400;font-size:12px}
 </style>
@@ -792,7 +794,7 @@ function renderDiscover(){
 /* ============ Le fil du rire : publications simulées, contenu maison ============
    Le fil est un bonus qui mène aux dates : rires en commun → suggestions, commentaire → demande de conversation (avec accord),
    « J'ai ri » → affine ton profil d'humour. Charte, modération, masquer, signaler, bloquer. */
-const AUTH={natoo:{n:'Natoo',g:'linear-gradient(135deg,#25f4ee,#fe2c55)',e:'♪',tag:'Vidéo TikTok'},squeezie:{n:'Squeezie',g:'linear-gradient(135deg,#25f4ee,#fe2c55)',e:'♪',tag:'Vidéo TikTok'},mcflyetcarlito:{n:'McFly & Carlito',g:'linear-gradient(135deg,#25f4ee,#fe2c55)',e:'♪',tag:'Vidéo TikTok'},G:{n:'La Gazette de Cupidon',g:'linear-gradient(135deg,#c9abff,#ff8fb1)',e:'🗞️',tag:'Compte officiel'},N:{n:'Nadia',g:'linear-gradient(135deg,#ffb36b,#ff6b8b)'},T:{n:'Théo',g:'linear-gradient(135deg,#7ad7ff,#7a8bff)'},X:{n:'Anonyme',g:'#555'}};
+const AUTH={legorafi:{n:'Le Gorafi',g:'linear-gradient(135deg,#1877f2,#5b9dff)',e:'f',tag:'Publication Facebook'},natoo:{n:'Natoo',g:'linear-gradient(135deg,#25f4ee,#fe2c55)',e:'♪',tag:'Vidéo TikTok'},squeezie:{n:'Squeezie',g:'linear-gradient(135deg,#25f4ee,#fe2c55)',e:'♪',tag:'Vidéo TikTok'},mcflyetcarlito:{n:'McFly & Carlito',g:'linear-gradient(135deg,#25f4ee,#fe2c55)',e:'♪',tag:'Vidéo TikTok'},G:{n:'La Gazette de Cupidon',g:'linear-gradient(135deg,#c9abff,#ff8fb1)',e:'🗞️',tag:'Compte officiel'},N:{n:'Nadia',g:'linear-gradient(135deg,#ffb36b,#ff6b8b)'},T:{n:'Théo',g:'linear-gradient(135deg,#7ad7ff,#7a8bff)'},X:{n:'Anonyme',g:'#555'}};
 const GAVG={Y:'linear-gradient(135deg,#ffd36b,#ff7a59)',L:'linear-gradient(135deg,#c9abff,#ff8fb1)',S:'linear-gradient(135deg,#8af0b5,#5b7cff)'};
 const tx=v=>v&&typeof v==='object'?v[other(S.me)]:v;
 const POSTS=[
@@ -831,7 +833,13 @@ POSTS.push(
   com:[{by:'O',text:{B:"Un jeu de mots par jour, c’est mon minimum vital.",A:"Défi : on en invente un meilleur en commentaire ?"},l:31}]},
  {id:11,o:6.5,by:'natoo',st:0,kind:'tiktok',h:'natoo',v:'7417053276039892257',t:'Vidéo TikTok',likes:61,laughs:144,text:"« L’ascension du Montparnasse. Le projet d’une vie. »",
   com:[{by:'Y',text:"Le sérieux du titre me tue.",l:15}]});
-const CANDLAUGH={O:[0,2,5,7,8,10],Y:[3,6,11],L:[1,5,7,9],S:[2,3,6]};
+/* Vraies publications photo Facebook (page satirique Le Gorafi), intégrées avec le plugin officiel « Publication intégrée », créditées et liées. */
+POSTS.push(
+ {id:12,o:1.5,by:'legorafi',st:1,kind:'fb',fb:'https://www.facebook.com/photo/?fbid=612969734192434&set=a.282616477227763',t:'Photo Facebook',likes:52,laughs:118,text:"« Gorafi Magazine : notre classement des meilleurs pavés de France »",
+  com:[{by:'O',text:{B:"Le sérieux avec lequel c’est présenté, j’adore.",A:"Enfin un classement qui compte vraiment."},l:17}]},
+ {id:13,o:5.5,by:'legorafi',st:0,kind:'fb',fb:'https://www.facebook.com/legorafi/photos/a.383573651674184/3705271692837680/',t:'Photo Facebook',likes:44,laughs:96,text:"« Gorafi Magazine : 10 jours après le franchissement du mur du son au-dessus de Paris »",
+  com:[{by:'S',text:"Pince-sans-rire niveau olympique.",l:11}]});
+const CANDLAUGH={O:[0,2,5,7,8,10,12],Y:[3,6,11,13],L:[1,5,7,9],S:[2,3,6,13]};
 const candKey=id=>id===other(S.me)?'O':id;
 const candId=k=>k==='O'?other(S.me):k;
 function feedCommon(id){const k=candKey(id);if(S.feed.blocked[k])return 0;return (CANDLAUGH[k]||[]).filter(i=>S.feed.laugh[i]).length}
@@ -864,7 +872,7 @@ function postHTML(p,still){
   return `<article class="post ${still?'still':''}" id="post-${p.id}">
    <header>${authAv(p.by)}<div class="ph"><b>${authName(p.by)}${AUTH[p.by]&&AUTH[p.by].tag?` <span class="offi">${AUTH[p.by].tag}</span>`:''}${isCand(p.by)?`<span class="fpct">${candPct(p.by)} % · privé</span>`:''}</b><small>${p.t} · ${HSTY[p.st].e} ${HSTY[p.st].n.toLowerCase()}</small></div><button class="iconbtn sm" data-act="pmenu" data-p="${p.id}" aria-label="Options de la publication">⋯</button></header>
    <p class="ptext">${tx(p.text)}</p>
-   ${p.art?`<div class="pmedia" ${p.kind==='video'?`data-act="vplay"`:''}>${tx(p.art)}</div>`:''}${p.kind==='tiktok'?tkHTML(p):''}${extra}
+   ${p.art?`<div class="pmedia" ${p.kind==='video'?`data-act="vplay"`:''}>${tx(p.art)}</div>`:''}${p.kind==='tiktok'?tkHTML(p):p.kind==='fb'?fbHTML(p):''}${extra}
    <div class="pacts"><button class="pa ${l?'on':''}" data-act="flaugh" data-p="${p.id}">😂 J'ai ri · ${p.laughs+(l?1:0)}</button><button class="pa ${lk?'on':''}" data-act="flike" data-p="${p.id}">${lk?'❤️':'🤍'} ${p.likes+(lk?1:0)}</button><span class="hint">💬 ${coms.filter(c=>!c.hidden).length}</span></div>
    <div class="fcoms">${coms.map((c,j)=>comHTML(p,c,j)).join('')}</div>
    <form class="fwrite" data-p="${p.id}"><input maxlength="140" placeholder="${p.kind==='defi'?'Ta légende…':'Un commentaire drôle et bienveillant…'}" aria-label="Commenter"><button class="btn soft sm" type="submit">Publier</button></form>
@@ -872,6 +880,8 @@ function postHTML(p,still){
 const tkUrl=p=>`https://www.tiktok.com/@${p.h}/video/${p.v}`;
 function tkHTML(p){return `<div class="tk on" id="tk-${p.id}"><div class="tkcover"><span class="tklogo">♪</span><b>@${p.h}</b><small>Chargement de la vidéo…</small></div><iframe data-src="https://www.tiktok.com/player/v1/${p.v}?autoplay=1&loop=1&description=0&music_info=0&rel=0" title="Vidéo TikTok de @${p.h}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
   <a class="tklink" href="${tkUrl(p)}" target="_blank" rel="noopener">Vidéo de @${p.h} · voir l’original sur TikTok ↗<small>La vidéo ne se lance pas ? Ce lien marche toujours.</small></a>`}
+function fbHTML(p){return `<div class="tk fb on" id="tk-${p.id}"><div class="tkcover"><span class="tklogo fbl">f</span><b>${authName(p.by)}</b><small>Chargement de la publication…</small></div><iframe data-src="https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(p.fb)}&show_text=true&width=350" title="Publication Facebook de ${authName(p.by)}" allow="encrypted-media; clipboard-write; picture-in-picture; web-share" scrolling="no"></iframe></div>
+  <a class="tklink" href="${p.fb}" target="_blank" rel="noopener">Publication de ${authName(p.by)} · voir l’original sur Facebook ↗<small>Elle ne s’affiche pas ? Ce lien marche toujours.</small></a>`}
 function navTabs(cur){return `<div class="tabs" role="tablist"><button role="tab" aria-selected="${cur==='discover'}" data-act="discover">💞 Suggestions</button><button role="tab" aria-selected="${cur==='feed'}" data-act="feed">😂 Le fil du rire</button></div>`}
 function renderFeed(){
   S.phase='feed';const f=S.feed,list=POSTS.filter(p=>f.filter<0||p.st===f.filter).sort((a,b)=>(a.o??a.id)-(b.o??b.id));
@@ -879,7 +889,7 @@ function renderFeed(){
     <div class="topbar"><button class="iconbtn" data-act="results" aria-label="Revenir à mon profil">←</button><span class="grow"></span><span class="badge">Publications simulées</span></div>
     ${navTabs('feed')}
     <div id="fnotif"></div>
-    <details class="charter"><summary>🛡️ La charte du fil : on rit avec, jamais contre</summary><ul><li>On commente la publication, jamais le physique de quelqu'un.</li><li>Pas de drague en public : pour aborder quelqu'un, « Engager la conversation » envoie une demande qu'il ou elle accepte ou non.</li><li>Humour sans cible : pas de moquerie sur une origine, un genre, un corps, une religion, un handicap.</li><li>Filtre automatique + modération humaine. Masquer, signaler, bloquer : en un geste, sur chaque publication.</li><li>Contenu maison ou publié par les membres, avec les droits. Les « actus » de la Gazette sont fictives et étiquetées.</li><li>Les vidéos TikTok passent par le lecteur officiel, créditées et liées à l’original. Rien n’est copié. Pour le lancement : accord des créateurs ou licence.</li></ul></details>
+    <details class="charter"><summary>🛡️ La charte du fil : on rit avec, jamais contre</summary><ul><li>On commente la publication, jamais le physique de quelqu'un.</li><li>Pas de drague en public : pour aborder quelqu'un, « Engager la conversation » envoie une demande qu'il ou elle accepte ou non.</li><li>Humour sans cible : pas de moquerie sur une origine, un genre, un corps, une religion, un handicap.</li><li>Filtre automatique + modération humaine. Masquer, signaler, bloquer : en un geste, sur chaque publication.</li><li>Contenu maison ou publié par les membres, avec les droits. Les « actus » de la Gazette sont fictives et étiquetées.</li><li>Les vidéos TikTok et les photos Facebook passent par les outils d’intégration officiels, créditées et liées à l’original. Rien n’est copié. Pour le lancement : accord des créateurs ou licence.</li></ul></details>
     <div class="myhum" id="myhum">${myHumLine()}</div>
     <div id="common">${commonHTML()}</div>
     <div class="chips fchips">${[[-1,'Tout']].concat(HSTY.map((x,k)=>[k,x.e+' '+x.n])).map(([k,t])=>`<button class="pill" data-act="ffilter" data-k="${k}" aria-pressed="${f.filter===k}">${t}</button>`).join('')}</div>
